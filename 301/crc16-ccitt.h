@@ -53,6 +53,11 @@ extern "C" {
  */
 
 
+/* Since Zephyr provides crc16_ccitt() with different arguments, including
+ * zephyr/sys/crc.h here would cause compiler error, have to extern
+ * crc16_itu_t() and define crc16_ccitt() for CANopenNode here. */
+extern uint16_t crc16_itu_t(uint16_t seed, const uint8_t *src, size_t len);
+
 /**
  * Update crc16_ccitt variable with one data byte
  *
@@ -63,7 +68,9 @@ extern "C" {
  * start of new CRC calculation, variable must be initialized (zero for xmodem).
  * @param chr One byte of data
  */
-void crc16_ccitt_single(uint16_t *crc, const uint8_t chr);
+inline void crc16_ccitt_single(uint16_t *crc, const uint8_t chr) {
+    *crc = crc16_itu_t(*crc, &chr, 1);
+}
 
 
 /**
@@ -76,9 +83,7 @@ void crc16_ccitt_single(uint16_t *crc, const uint8_t chr);
  *
  * @return Calculated CRC.
  */
-uint16_t crc16_ccitt(const uint8_t block[],
-                     size_t blockLength,
-                     uint16_t crc);
+#define crc16_ccitt(block, blockLength, crc) crc16_itu_t(crc, block, blockLength)
 
 
 /** @} */ /* CO_crc16_ccitt */
